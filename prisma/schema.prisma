@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String   @unique
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resumes       Resume[]
+  orders        Order[]
+  resumeUnlocks ResumeUnlock[]
+}
+
+model Resume {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String   @default("Untitled Resume")
+  slug        String?  @unique
+  templateKey String   @default("classic")
+  data        String   @default("{}")
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders  Order[]
+  unlocks ResumeUnlock[]
+
+  @@index([userId])
+  @@index([slug])
+}
+
+model ResumeUnlock {
+  id         String    @id @default(cuid())
+  userId     String
+  resumeId   String?
+  unlockType String    @default("single")
+  status     String    @default("pending")
+  orderId    String
+  unlockedAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume Resume? @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  order  Order   @relation(fields: [orderId], references: [id])
+
+  @@index([userId])
+  @@index([resumeId])
+}
+
+model Order {
+  id                String   @id @default(cuid())
+  userId            String
+  resumeId          String?
+  provider          String   @default("razorpay")
+  providerOrderId   String   @unique
+  providerPaymentId String?
+  productType       String
+  amount            Int
+  currency          String   @default("USD")
+  status            String   @default("created")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume  Resume?        @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  unlocks ResumeUnlock[]
+
+  @@index([userId])
+  @@index([providerOrderId])
+}
