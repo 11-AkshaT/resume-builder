@@ -46,7 +46,8 @@ export function ResumeEditor({
   initialPublished,
 }: ResumeEditorProps) {
   const [data, setData] = useState<ResumeData>(initialData);
-  const [template, setTemplate] = useState<TemplateKey>(initialTemplate);
+  const safeTemplate = TEMPLATE_KEYS.includes(initialTemplate) ? initialTemplate : "minimal";
+  const [template, setTemplate] = useState<TemplateKey>(safeTemplate);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
   const [title, setTitle] = useState(initialTitle);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">(
