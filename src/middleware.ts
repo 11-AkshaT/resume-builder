@@ -1,9 +1,11 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
 const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "";
 
-export default clerkMiddleware((_auth, request) => {
+const isProtectedRoute = createRouteMatcher(["/app(.*)"]);
+
+export default clerkMiddleware(async (auth, request) => {
   const hostname = request.headers.get("host") ?? "";
   const { pathname } = request.nextUrl;
 
@@ -19,6 +21,10 @@ export default clerkMiddleware((_auth, request) => {
       url.pathname = `/r/${subdomain}${pathname === "/" ? "" : pathname}`;
       return NextResponse.rewrite(url);
     }
+  }
+
+  if (isProtectedRoute(request)) {
+    await auth.protect();
   }
 });
 
