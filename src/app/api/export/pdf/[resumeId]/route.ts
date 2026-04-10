@@ -45,7 +45,6 @@ export async function GET(
     return new NextResponse(html, {
       headers: {
         "Content-Type": "text/html; charset=utf-8",
-        "Content-Disposition": `inline; filename="${resume.title.replace(/[^a-zA-Z0-9]/g, "_")}.html"`,
       },
     });
   } catch (error) {

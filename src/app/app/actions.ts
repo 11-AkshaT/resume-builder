@@ -24,6 +24,11 @@ export async function createResume() {
 export async function updateResumeData(resumeId: string, data: ResumeData) {
   const user = await requireUser();
 
+  const serialized = JSON.stringify(data);
+  if (serialized.length > 500_000) {
+    throw new Error("Resume data too large");
+  }
+
   const resume = await db.resume.findUnique({
     where: { id: resumeId },
   });
@@ -34,7 +39,7 @@ export async function updateResumeData(resumeId: string, data: ResumeData) {
 
   await db.resume.update({
     where: { id: resumeId },
-    data: { data: JSON.stringify(data) },
+    data: { data: serialized },
   });
 
   return { success: true };
@@ -150,6 +155,7 @@ export async function unpublishResume(resumeId: string) {
 }
 
 export async function checkSlugAvailability(slug: string, resumeId: string) {
+  await requireUser();
   const normalized = slug.toLowerCase().trim();
   if (!SLUG_REGEX.test(normalized)) {
     return { available: false, reason: "Invalid format" };

@@ -1,6 +1,8 @@
 import { db } from "./db";
 
-const isDev = process.env.DEV_BYPASS_AUTH === "true";
+const isDev =
+  process.env.DEV_BYPASS_AUTH === "true" &&
+  process.env.NODE_ENV !== "production";
 
 async function getClerkAuth() {
   const { auth, currentUser } = await import("@clerk/nextjs/server");

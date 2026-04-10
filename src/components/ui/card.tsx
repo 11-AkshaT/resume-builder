@@ -6,7 +6,7 @@ export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
     <div
       ref={ref}
       className={cn(
-        "rounded-xl border border-border bg-background shadow-sm",
+        "rounded-[1.5rem] border border-border/90 bg-card/90 shadow-[0_20px_45px_-32px_rgba(22,34,28,0.22)] transition-all duration-200",
         className
       )}
       {...props}
@@ -33,7 +33,7 @@ export const CardTitle = forwardRef<
 >(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn("text-lg font-semibold leading-none tracking-tight", className)}
+    className={cn("text-base font-semibold leading-none tracking-tight", className)}
     {...props}
   />
 ));

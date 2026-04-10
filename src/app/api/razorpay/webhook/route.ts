@@ -11,7 +11,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing signature" }, { status: 400 });
     }
 
-    const expectedSignature = createHmac("sha256", process.env.RAZORPAY_WEBHOOK_SECRET!)
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      console.error("RAZORPAY_WEBHOOK_SECRET is not configured");
+      return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
+    }
+
+    const expectedSignature = createHmac("sha256", webhookSecret)
       .update(body)
       .digest("hex");
 
@@ -34,6 +40,10 @@ export async function POST(req: NextRequest) {
       if (!order) {
         console.error("Order not found for:", providerOrderId);
         return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      }
+
+      if (order.status === "paid") {
+        return NextResponse.json({ status: "already_processed" });
       }
 
       if (payment.amount !== order.amount) {

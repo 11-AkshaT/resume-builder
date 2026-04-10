@@ -6,7 +6,6 @@ import type {
   WorkExperience,
   Project,
   Education,
-  SkillGroup,
   SectionKey,
 } from "@/lib/types";
 import { SECTION_LABELS } from "@/lib/types";
@@ -122,7 +121,7 @@ export function EditorSidebar({ data, onChange }: EditorSidebarProps) {
   };
 
   return (
-    <div className="p-4 space-y-2">
+    <div className="space-y-3 px-4 pb-4 pt-3 sm:px-5">
       {/* Personal Info — always pinned at top */}
       <Section
         title="Personal Info"
@@ -202,7 +201,7 @@ function PersonalInfoContent({
       />
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label className="text-sm font-medium flex items-center gap-1.5">
+          <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             <Link2 className="h-3.5 w-3.5" />
             Links
           </label>
@@ -223,7 +222,10 @@ function PersonalInfoContent({
           </Button>
         </div>
         {data.personalInfo.links.map((link, i) => (
-          <div key={i} className="flex gap-2 mb-2">
+          <div
+            key={i}
+            className="mb-2 flex gap-2 rounded-[1.1rem] border border-border/70 bg-card/60 p-2"
+          >
             <Input
               value={link.label}
               onChange={(e) => {
@@ -357,7 +359,10 @@ function SkillsContent({
   return (
     <>
       {data.skills.map((group, i) => (
-        <div key={group.id} className="flex gap-2 mb-2 items-start">
+        <div
+          key={group.id}
+          className="mb-2 flex items-start gap-2 rounded-[1.25rem] border border-border/75 bg-[#fffaf2] p-2.5"
+        >
           <Input
             value={group.category}
             onChange={(e) => {
@@ -436,13 +441,15 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border border-border rounded-lg overflow-hidden">
+    <div className="overflow-hidden rounded-[1.6rem] border border-border/80 bg-card/78 shadow-[0_18px_40px_-34px_rgba(24,34,28,0.35)]">
       <div
-        className="flex items-center justify-between px-4 py-3 bg-muted/50 cursor-pointer"
+        className="flex cursor-pointer items-center justify-between px-4 py-3.5 transition-colors duration-150 hover:bg-muted/35"
         onClick={onToggle}
       >
-        <div className="flex items-center gap-2 font-medium text-sm">
-          {icon}
+        <div className="flex items-center gap-3 text-sm font-medium text-foreground">
+          <span className="flex h-8 w-8 items-center justify-center rounded-2xl bg-[#edf3ee] text-primary">
+            {icon}
+          </span>
           {title}
         </div>
         <div className="flex items-center gap-0.5">
@@ -475,17 +482,13 @@ function Section({
               className="h-7 w-7 p-0"
               onClick={(e) => { e.stopPropagation(); onAdd(); }}
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-3.5 w-3.5 text-primary" />
             </Button>
           )}
-          {open ? (
-            <ChevronUp className="h-4 w-4 text-muted-foreground ml-0.5" />
-          ) : (
-            <ChevronDown className="h-4 w-4 text-muted-foreground ml-0.5" />
-          )}
+          <ChevronDown className={`h-4 w-4 text-muted-foreground ml-0.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
         </div>
       </div>
-      {open && <div className="p-4">{children}</div>}
+      {open && <div className="border-t border-border/70 p-4">{children}</div>}
     </div>
   );
 }
@@ -504,11 +507,11 @@ function ExperienceEntry({
   onMoveDown?: () => void;
 }) {
   return (
-    <div className="border border-border rounded-md p-3 mb-3 space-y-3">
+    <div className="mb-3 space-y-3 rounded-[1.35rem] border border-border/75 bg-[#fffaf2] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           <GripVertical className="h-4 w-4 text-muted-foreground" />
-          <span className="text-xs font-medium text-muted-foreground">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             {experience.role || experience.company || "New Experience"}
           </span>
         </div>
@@ -584,9 +587,9 @@ function ProjectEntry({
   onMoveDown?: () => void;
 }) {
   return (
-    <div className="border border-border rounded-md p-3 mb-3 space-y-3">
+    <div className="mb-3 space-y-3 rounded-[1.35rem] border border-border/75 bg-[#fffaf2] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {project.name || "New Project"}
         </span>
         <div className="flex items-center gap-1">
@@ -643,9 +646,9 @@ function EducationEntry({
   onRemove: () => void;
 }) {
   return (
-    <div className="border border-border rounded-md p-3 mb-3 space-y-3">
+    <div className="mb-3 space-y-3 rounded-[1.35rem] border border-border/75 bg-[#fffaf2] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">
+        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {education.school || "New Education"}
         </span>
         <Button variant="ghost" size="sm" onClick={onRemove}>
@@ -705,8 +708,10 @@ function BulletEditor({
 }) {
   return (
     <div>
-      <div className="flex items-center justify-between mb-1.5">
-        <label className="text-sm font-medium">Bullet Points</label>
+      <div className="mb-1.5 flex items-center justify-between">
+        <label className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+          Bullet points
+        </label>
         <Button
           variant="ghost"
           size="sm"
@@ -717,8 +722,8 @@ function BulletEditor({
         </Button>
       </div>
       {bullets.map((bullet, i) => (
-        <div key={i} className="flex gap-2 mb-1.5">
-          <span className="text-xs text-muted-foreground mt-2.5 shrink-0">•</span>
+        <div key={i} className="mb-1.5 flex gap-2">
+          <span className="mt-2.5 shrink-0 text-xs text-muted-foreground">•</span>
           <Input
             value={bullet}
             onChange={(e) => {
