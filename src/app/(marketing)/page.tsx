@@ -165,7 +165,7 @@ export default function HomePage() {
               <FadeIn delay={0.45}>
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Link
-                    href="/sign-up"
+                    href="/app"
                     className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#215146] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_16px_40px_-20px_rgba(33,81,70,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(33,81,70,0.6)]"
                   >
                     Create my resume
@@ -429,7 +429,7 @@ export default function HomePage() {
             </p>
             <div className="mt-8">
               <Link
-                href="/sign-up"
+                href="/app"
                 className="group inline-flex items-center justify-center gap-2 rounded-full bg-[#215146] px-7 py-3.5 text-sm font-semibold text-white shadow-[0_16px_40px_-20px_rgba(33,81,70,0.5)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_20px_50px_-20px_rgba(33,81,70,0.6)]"
               >
                 Create my resume
