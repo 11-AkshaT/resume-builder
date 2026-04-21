@@ -1,4 +1,5 @@
 import type { ResumeData, SectionKey } from "../types";
+import { getSafeMailto, getSafeUrl } from "../safe-url";
 
 function tex(str: string): string {
   return str
@@ -10,8 +11,9 @@ function tex(str: string): string {
 }
 
 function href(url: string, label?: string): string {
+  const safeUrl = getSafeUrl(url);
   const display = label || url.replace(/^https?:\/\/(www\.)?/, "");
-  return `\\href{${url}}{\\underline{${tex(display)}}}`;
+  return safeUrl ? `\\href{${safeUrl}}{\\underline{${tex(display)}}}` : tex(display);
 }
 
 export function generateProfessionalLaTeX(data: ResumeData): string {
@@ -31,6 +33,7 @@ export function generateProfessionalLaTeX(data: ResumeData): string {
 \\usepackage{paracol}
 \\usepackage{supertabular}
 \\usepackage{titlesec}
+\\usepackage{etoolbox}
 \\hypersetup{colorlinks, urlcolor=black, linkcolor=black}
 
 \\geometry{hmargin=1.75cm, vmargin=2.5cm}
@@ -66,8 +69,10 @@ export function generateProfessionalLaTeX(data: ResumeData): string {
   doc += `\\begin{supertabular}{ll}\n`;
   if (personalInfo.phone)
     doc += `  \\footnotesize\\faPhone & ${tex(personalInfo.phone)} \\\\\n`;
-  if (personalInfo.email)
-    doc += `  \\footnotesize\\faEnvelope & \\href{mailto:${personalInfo.email}}{${tex(personalInfo.email)}} \\\\\n`;
+  if (personalInfo.email) {
+    const emailHref = getSafeMailto(personalInfo.email);
+    doc += `  \\footnotesize\\faEnvelope & ${emailHref ? `\\href{${emailHref}}{${tex(personalInfo.email)}}` : tex(personalInfo.email)} \\\\\n`;
+  }
   for (const link of personalInfo.links) {
     if (link.url)
       doc += `  \\footnotesize\\faLink & ${href(link.url, link.label)} \\\\\n`;

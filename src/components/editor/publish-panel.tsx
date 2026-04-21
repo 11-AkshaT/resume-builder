@@ -18,6 +18,7 @@ import {
   unpublishResume,
   checkSlugAvailability,
 } from "@/app/app/actions";
+import { trackEvent } from "@/lib/analytics";
 
 interface PublishPanelProps {
   resumeId: string;
@@ -107,6 +108,9 @@ export function PublishPanel({
       if (result.success) {
         setIsPublished(true);
         setSlug(result.slug);
+        trackEvent("resume_published", {
+          publishMode: hasLifetime ? "lifetime" : "blocked",
+        });
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to publish");
@@ -147,11 +151,11 @@ export function PublishPanel({
           </span>
         </div>
         <h3 className="mt-4 text-xl font-semibold tracking-[-0.03em] text-foreground">
-          Turn the resume into a shareable page
+          Turn the resume into yourname.resumeonce.co
         </h3>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Publish this resume to a clean public link for LinkedIn, email signatures, or
-          direct outreach when you upgrade to the lifetime plan.
+          Publish this resume to a clean subdomain for LinkedIn, email signatures,
+          or direct outreach when you upgrade to the lifetime plan.
         </p>
         <div className="mt-4 rounded-[1.2rem] border border-[#e1d5c5] bg-white/70 p-4">
           <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
@@ -160,7 +164,7 @@ export function PublishPanel({
           <ul className="mt-3 space-y-2 text-sm text-foreground">
             <li className="flex items-center gap-2">
               <Check className="h-4 w-4 text-primary" />
-              Custom public URL for every published resume
+              Custom resumeonce.co subdomain for every published resume
             </li>
             <li className="flex items-center gap-2">
               <Check className="h-4 w-4 text-primary" />
@@ -193,7 +197,7 @@ export function PublishPanel({
           <div className="flex-1 truncate rounded-xl border border-[#c9ddd1] bg-card/90 px-3 py-2 text-xs font-mono text-foreground">
             {publicUrl}
           </div>
-          <Button variant="outline" size="sm" className="shrink-0 h-8 w-8 p-0" onClick={copyUrl}>
+          <Button variant="outline" size="sm" className="shrink-0 h-8 w-8 p-0" onClick={copyUrl} aria-label="Copy published resume URL">
             {copied ? (
               <Check className="h-3.5 w-3.5 text-teal-600" />
             ) : (
@@ -201,7 +205,7 @@ export function PublishPanel({
             )}
           </Button>
           <a href={publicUrl} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="sm" className="shrink-0 h-8 w-8 p-0">
+            <Button variant="outline" size="sm" className="shrink-0 h-8 w-8 p-0" aria-label="Open published resume in a new tab">
               <ExternalLink className="h-3.5 w-3.5" />
             </Button>
           </a>
@@ -212,6 +216,7 @@ export function PublishPanel({
         <Button
           variant="ghost"
           size="sm"
+          aria-label="Unpublish resume"
           className="mt-3 text-red-600 hover:bg-red-50 hover:text-red-700"
           onClick={handleUnpublish}
           disabled={loading}
@@ -237,7 +242,7 @@ export function PublishPanel({
         <Badge variant="success">Lifetime active</Badge>
       </div>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Claim a clean URL for this resume and keep it updated from the same editor.
+        Claim a clean resumeonce.co subdomain and keep it updated from the same editor.
       </p>
 
       <div className="mt-4 mb-4 rounded-[1.25rem] border border-border/80 bg-[#fcf7ef] p-4">
@@ -300,6 +305,7 @@ export function PublishPanel({
       <Button
         size="md"
         className="w-full"
+        aria-label="Publish resume online"
         onClick={handlePublish}
         disabled={loading || slug.length < 2 || slugStatus === "taken"}
       >

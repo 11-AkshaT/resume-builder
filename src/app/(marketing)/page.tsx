@@ -23,9 +23,9 @@ const benefitCards = [
     icon: FileCheck2,
   },
   {
-    eyebrow: "PDF and LaTeX export",
-    title: "Download clean files you can use anywhere",
-    body: "Get a polished PDF ready to attach, or a LaTeX source file you can keep editing in Overleaf.",
+    eyebrow: "Download and LaTeX export",
+    title: "Get clean files you can use anywhere",
+    body: "Open a polished browser-ready download view or grab the LaTeX source file to keep editing in Overleaf.",
     icon: Layers3,
   },
 ];
@@ -34,7 +34,7 @@ const processSteps = [
   {
     step: "01",
     title: "Add your content",
-    copy: "Fill in experience, projects, skills, and education. No account or payment needed to start.",
+    copy: "Create a free account, fill in experience, projects, skills, and education, and keep editing before you pay anything.",
   },
   {
     step: "02",
@@ -61,8 +61,8 @@ const comparisons = [
   },
   {
     label: "Export",
-    resumeOnce: "PDF and LaTeX. Keep editing after purchase.",
-    others: "PDF only. Re-pay to update later.",
+    resumeOnce: "Download view and LaTeX. Keep editing after purchase.",
+    others: "Single file type. Re-pay to update later.",
   },
 ];
 
@@ -85,13 +85,13 @@ const pricingTiers = [
     name: "Single resume",
     price: "$2.99",
     note: "One-time",
-    description: "Unlock PDF and LaTeX export for one resume. Keep it forever.",
+    description: "Unlock the download view and LaTeX export for one resume. Keep it forever.",
     cta: "Start free, unlock later",
     href: "/sign-up",
     featured: true,
     features: [
       "Export this resume forever",
-      "PDF and LaTeX download",
+      "Download view and LaTeX export",
       "Keep editing after purchase",
     ],
   },
@@ -114,7 +114,7 @@ const pricingTiers = [
 const faqs = [
   {
     question: "Do I have to pay before I can use the editor?",
-    answer: "No. You can create, edit, and preview your entire resume for free. Payment is only required when you want to download the PDF or LaTeX file.",
+    answer: "No card is required to start. Create an account, build and preview your entire resume for free, and pay only when you want to download or export it.",
   },
   {
     question: "What makes this different from free resume builders?",
@@ -144,7 +144,7 @@ export default function HomePage() {
             <div>
               <FadeIn delay={0.1}>
                 <p className="text-sm font-medium tracking-wide text-[#215146]">
-                  Free to build. Pay once to export.
+                  Create free. Pay once to export.
                 </p>
               </FadeIn>
 
@@ -264,7 +264,7 @@ export default function HomePage() {
               How it works
             </h2>
             <p className="mt-3 max-w-md text-base leading-7 text-[#4c5751]">
-              Three steps. No account needed to start writing.
+              Three steps. Free account, no card required to start.
             </p>
           </FadeInOnScroll>
 

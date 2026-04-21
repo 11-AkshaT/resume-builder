@@ -56,7 +56,16 @@ export function ResumeEditor({
   const [showPaywall, setShowPaywall] = useState(false);
   const saveTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
   const latestData = useRef(data);
-  latestData.current = data;
+  const titleSaveTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const latestTitle = useRef(title);
+
+  useEffect(() => {
+    latestData.current = data;
+  }, [data]);
+
+  useEffect(() => {
+    latestTitle.current = title;
+  }, [title]);
 
   const autoSave = useCallback(async () => {
     setSaveStatus("saving");
@@ -80,13 +89,20 @@ export function ResumeEditor({
   );
 
   const handleTitleChange = useCallback(
-    async (newTitle: string) => {
+    (newTitle: string) => {
       setTitle(newTitle);
-      try {
-        await updateResumeTitle(resumeId, newTitle);
-      } catch {
-        /* silent fail for title */
-      }
+      setSaveStatus("unsaved");
+
+      if (titleSaveTimeout.current) clearTimeout(titleSaveTimeout.current);
+      titleSaveTimeout.current = setTimeout(async () => {
+        setSaveStatus("saving");
+        try {
+          await updateResumeTitle(resumeId, latestTitle.current);
+          setSaveStatus("saved");
+        } catch {
+          setSaveStatus("unsaved");
+        }
+      }, 700);
     },
     [resumeId]
   );
@@ -94,6 +110,7 @@ export function ResumeEditor({
   useEffect(() => {
     return () => {
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      if (titleSaveTimeout.current) clearTimeout(titleSaveTimeout.current);
     };
   }, []);
 
@@ -108,7 +125,7 @@ export function ResumeEditor({
     [resumeId]
   );
 
-  const handleExport = (format: "pdf" | "latex") => {
+  const handleExport = (format: "download" | "latex") => {
     if (!unlocked) {
       setShowPaywall(true);
       return;
@@ -117,12 +134,39 @@ export function ResumeEditor({
   };
 
   return (
-    <div className="h-[calc(100vh-3.5rem)] flex flex-col">
+      <div className="h-[calc(100vh-3.5rem)]">
+        <div className="flex h-full flex-col lg:hidden">
+          <div className="flex-1 px-6 py-10">
+            <div className="mx-auto flex h-full max-w-md flex-col justify-center rounded-[2rem] border border-border/90 bg-card/95 p-8 text-center shadow-[0_26px_70px_-42px_rgba(20,32,27,0.28)]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                Desktop only for v1
+              </p>
+              <h1 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-foreground">
+                Open the editor on a laptop or desktop.
+              </h1>
+              <p className="mt-4 text-sm leading-7 text-muted-foreground">
+                The v1 editor is optimized for larger screens so your layout and preview
+                stay accurate while you edit.
+              </p>
+              <div className="mt-6">
+                <Link
+                  href="/app"
+                  className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[0_14px_32px_-18px_rgba(33,81,70,0.65)]"
+                >
+                  Back to dashboard
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="hidden h-full flex-col lg:flex">
       {/* Toolbar */}
       <div className="border-b border-border bg-background px-4 py-2 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
           <Link
             href="/app"
+            aria-label="Back to dashboard"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -131,6 +175,7 @@ export function ResumeEditor({
             type="text"
             value={title}
             onChange={(e) => handleTitleChange(e.target.value)}
+            aria-label="Resume title"
             className="font-semibold bg-transparent border-none outline-none text-sm focus:ring-0 w-48"
           />
           <span className="text-xs text-muted-foreground flex items-center gap-1">
@@ -159,6 +204,9 @@ export function ResumeEditor({
             <Button
               variant="outline"
               size="sm"
+              aria-haspopup="menu"
+              aria-expanded={showTemplatePicker}
+              aria-label="Choose resume template"
               onClick={() => setShowTemplatePicker((v) => !v)}
             >
               <Layout className="h-4 w-4 mr-1.5" />
@@ -170,6 +218,7 @@ export function ResumeEditor({
                   <button
                     key={key}
                     onClick={() => handleTemplateChange(key)}
+                    aria-pressed={key === template}
                     className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                       key === template
                         ? "bg-primary text-primary-foreground"
@@ -185,21 +234,23 @@ export function ResumeEditor({
               </div>
             )}
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport("pdf")}
-          >
-            {unlocked ? (
-              <Download className="h-4 w-4 mr-1.5" />
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label="Open download view"
+              onClick={() => handleExport("download")}
+            >
+              {unlocked ? (
+                <Download className="h-4 w-4 mr-1.5" />
             ) : (
               <Lock className="h-4 w-4 mr-1.5" />
             )}
-            PDF
+            Download
           </Button>
           <Button
             variant="outline"
             size="sm"
+            aria-label="Export LaTeX file"
             onClick={() => handleExport("latex")}
           >
             {unlocked ? (
@@ -237,6 +288,7 @@ export function ResumeEditor({
           onClose={() => setShowPaywall(false)}
         />
       )}
-    </div>
-  );
+        </div>
+      </div>
+    );
 }

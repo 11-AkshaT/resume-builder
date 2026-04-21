@@ -4,6 +4,7 @@ import { emptyResumeData, type ResumeData, type TemplateKey } from "@/lib/types"
 import { ResumePreview } from "@/components/editor/resume-preview";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { env } from "@/lib/env";
 
 type Params = Promise<{ slug: string }>;
 
@@ -64,19 +65,21 @@ export default async function PublicResumePage({
   }
 
   const data = parseResumeData(resume.data);
+  const marketingUrl =
+    env.appUrl ?? (env.rootDomain ? `https://${env.rootDomain}` : "/");
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="public-resume-page min-h-screen bg-gray-100">
       {/* Minimal top bar */}
       <div className="bg-white border-b border-gray-200 px-4 py-2.5 flex items-center justify-between">
         <Link
-          href="/"
+          href={marketingUrl}
           className="text-sm font-semibold text-gray-900 hover:text-gray-600 transition-colors"
         >
           ResumeOnce
         </Link>
         <Link
-          href="/"
+          href={marketingUrl}
           className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
         >
           Build your own &rarr;

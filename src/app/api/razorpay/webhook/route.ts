@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { createHmac } from "node:crypto";
+import { env } from "@/lib/env";
+import { finalizePaidOrder, verifyWebhookSignature } from "@/lib/payments";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,17 +12,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing signature" }, { status: 400 });
     }
 
-    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const webhookSecret = env.razorpayWebhookSecret;
     if (!webhookSecret) {
       console.error("RAZORPAY_WEBHOOK_SECRET is not configured");
       return NextResponse.json({ error: "Server misconfigured" }, { status: 500 });
     }
 
-    const expectedSignature = createHmac("sha256", webhookSecret)
-      .update(body)
-      .digest("hex");
-
-    if (signature !== expectedSignature) {
+    if (!verifyWebhookSignature(body, signature, webhookSecret)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
     }
 
@@ -33,48 +30,17 @@ export async function POST(req: NextRequest) {
       const providerOrderId = payment.order_id;
       const providerPaymentId = payment.id;
 
-      const order = await db.order.findUnique({
-        where: { providerOrderId },
+      await finalizePaidOrder({
+        providerOrderId,
+        providerPaymentId,
+        verifiedPayment: {
+          amount: payment.amount,
+          currency: payment.currency,
+          orderId: providerOrderId,
+          paymentId: providerPaymentId,
+          status: "captured",
+        },
       });
-
-      if (!order) {
-        console.error("Order not found for:", providerOrderId);
-        return NextResponse.json({ error: "Order not found" }, { status: 404 });
-      }
-
-      if (order.status === "paid") {
-        return NextResponse.json({ status: "already_processed" });
-      }
-
-      if (payment.amount !== order.amount) {
-        console.error("Amount mismatch:", payment.amount, order.amount);
-        return NextResponse.json(
-          { error: "Amount mismatch" },
-          { status: 400 }
-        );
-      }
-
-      await db.$transaction([
-        db.order.update({
-          where: { id: order.id },
-          data: {
-            status: "paid",
-            providerPaymentId,
-          },
-        }),
-
-        db.resumeUnlock.create({
-          data: {
-            userId: order.userId,
-            resumeId: order.productType === "single_resume_unlock" ? order.resumeId : null,
-            unlockType:
-              order.productType === "single_resume_unlock" ? "single" : "lifetime",
-            status: "paid",
-            orderId: order.id,
-            unlockedAt: new Date(),
-          },
-        }),
-      ]);
 
       return NextResponse.json({ status: "ok" });
     }

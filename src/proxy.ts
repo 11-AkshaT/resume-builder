@@ -1,26 +1,21 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-
-const ROOT_DOMAIN = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "";
+import { assertProductionEnv, env } from "./lib/env";
+import { getHostedResumeSlugFromHost } from "./lib/subdomains";
 
 const isProtectedRoute = createRouteMatcher(["/app(.*)"]);
+
+assertProductionEnv();
 
 export default clerkMiddleware(async (auth, request) => {
   const hostname = request.headers.get("host") ?? "";
   const { pathname } = request.nextUrl;
+  const hostedResumeSlug = getHostedResumeSlugFromHost(hostname, env.rootDomain);
 
-  if (
-    ROOT_DOMAIN &&
-    hostname !== ROOT_DOMAIN &&
-    hostname !== `www.${ROOT_DOMAIN}`
-  ) {
-    const subdomain = hostname.replace(`.${ROOT_DOMAIN}`, "").split(".")[0];
-
-    if (subdomain && subdomain !== "www" && !hostname.startsWith("localhost")) {
-      const url = request.nextUrl.clone();
-      url.pathname = `/r/${subdomain}${pathname === "/" ? "" : pathname}`;
-      return NextResponse.rewrite(url);
-    }
+  if (hostedResumeSlug) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/r/${hostedResumeSlug}${pathname === "/" ? "" : pathname}`;
+    return NextResponse.rewrite(url);
   }
 
   if (isProtectedRoute(request)) {

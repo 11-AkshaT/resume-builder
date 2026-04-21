@@ -442,8 +442,10 @@ function Section({
 }) {
   return (
     <div className="overflow-hidden rounded-[1.6rem] border border-border/80 bg-card/78 shadow-[0_18px_40px_-34px_rgba(24,34,28,0.35)]">
-      <div
-        className="flex cursor-pointer items-center justify-between px-4 py-3.5 transition-colors duration-150 hover:bg-muted/35"
+      <button
+        type="button"
+        aria-expanded={open}
+        className="flex w-full items-center justify-between px-4 py-3.5 text-left transition-colors duration-150 hover:bg-muted/35"
         onClick={onToggle}
       >
         <div className="flex items-center gap-3 text-sm font-medium text-foreground">
@@ -458,6 +460,7 @@ function Section({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
+              aria-label={`Move ${title} section up`}
               onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
               title="Move section up"
             >
@@ -469,6 +472,7 @@ function Section({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
+              aria-label={`Move ${title} section down`}
               onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
               title="Move section down"
             >
@@ -480,6 +484,7 @@ function Section({
               variant="ghost"
               size="sm"
               className="h-7 w-7 p-0"
+              aria-label={`Add ${title}`}
               onClick={(e) => { e.stopPropagation(); onAdd(); }}
             >
               <Plus className="h-3.5 w-3.5 text-primary" />
@@ -487,7 +492,7 @@ function Section({
           )}
           <ChevronDown className={`h-4 w-4 text-muted-foreground ml-0.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
         </div>
-      </div>
+      </button>
       {open && <div className="border-t border-border/70 p-4">{children}</div>}
     </div>
   );
@@ -517,16 +522,16 @@ function ExperienceEntry({
         </div>
         <div className="flex items-center gap-1">
           {onMoveUp && (
-            <Button variant="ghost" size="sm" onClick={onMoveUp}>
+            <Button variant="ghost" size="sm" onClick={onMoveUp} aria-label="Move experience entry up">
               <ChevronUp className="h-3 w-3" />
             </Button>
           )}
           {onMoveDown && (
-            <Button variant="ghost" size="sm" onClick={onMoveDown}>
+            <Button variant="ghost" size="sm" onClick={onMoveDown} aria-label="Move experience entry down">
               <ChevronDown className="h-3 w-3" />
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onRemove}>
+          <Button variant="ghost" size="sm" onClick={onRemove} aria-label="Remove experience entry">
             <Trash2 className="h-3 w-3 text-destructive" />
           </Button>
         </div>
@@ -594,16 +599,16 @@ function ProjectEntry({
         </span>
         <div className="flex items-center gap-1">
           {onMoveUp && (
-            <Button variant="ghost" size="sm" onClick={onMoveUp}>
+            <Button variant="ghost" size="sm" onClick={onMoveUp} aria-label="Move project entry up">
               <ChevronUp className="h-3 w-3" />
             </Button>
           )}
           {onMoveDown && (
-            <Button variant="ghost" size="sm" onClick={onMoveDown}>
+            <Button variant="ghost" size="sm" onClick={onMoveDown} aria-label="Move project entry down">
               <ChevronDown className="h-3 w-3" />
             </Button>
           )}
-          <Button variant="ghost" size="sm" onClick={onRemove}>
+          <Button variant="ghost" size="sm" onClick={onRemove} aria-label="Remove project entry">
             <Trash2 className="h-3 w-3 text-destructive" />
           </Button>
         </div>
@@ -651,7 +656,7 @@ function EducationEntry({
         <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           {education.school || "New Education"}
         </span>
-        <Button variant="ghost" size="sm" onClick={onRemove}>
+        <Button variant="ghost" size="sm" onClick={onRemove} aria-label="Remove education entry">
           <Trash2 className="h-3 w-3 text-destructive" />
         </Button>
       </div>

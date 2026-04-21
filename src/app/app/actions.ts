@@ -3,6 +3,10 @@
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth";
 import { hasLifetimeAccess } from "@/lib/entitlements";
+import {
+  getResumeSlugValidationError,
+  normalizeResumeSlug,
+} from "@/lib/publish";
 import { defaultResumeData, type ResumeData, type TemplateKey } from "@/lib/types";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
@@ -99,8 +103,6 @@ export async function deleteResume(resumeId: string) {
   redirect("/app");
 }
 
-const SLUG_REGEX = /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/;
-
 export async function publishResume(resumeId: string, slug: string) {
   const user = await requireUser();
 
@@ -114,11 +116,10 @@ export async function publishResume(resumeId: string, slug: string) {
     throw new Error("Resume not found");
   }
 
-  const normalized = slug.toLowerCase().trim();
-  if (!SLUG_REGEX.test(normalized)) {
-    throw new Error(
-      "Slug must be 2-40 characters, lowercase letters, numbers, and hyphens only"
-    );
+  const normalized = normalizeResumeSlug(slug);
+  const slugError = getResumeSlugValidationError(normalized);
+  if (slugError) {
+    throw new Error(slugError);
   }
 
   const existing = await db.resume.findUnique({ where: { slug: normalized } });
@@ -155,10 +156,16 @@ export async function unpublishResume(resumeId: string) {
 }
 
 export async function checkSlugAvailability(slug: string, resumeId: string) {
-  await requireUser();
-  const normalized = slug.toLowerCase().trim();
-  if (!SLUG_REGEX.test(normalized)) {
-    return { available: false, reason: "Invalid format" };
+  const user = await requireUser();
+  const normalized = normalizeResumeSlug(slug);
+  const slugError = getResumeSlugValidationError(normalized);
+  if (slugError) {
+    return { available: false, reason: slugError };
+  }
+
+  const resume = await db.resume.findUnique({ where: { id: resumeId } });
+  if (!resume || resume.userId !== user.id) {
+    throw new Error("Resume not found");
   }
 
   const existing = await db.resume.findUnique({ where: { slug: normalized } });

@@ -16,7 +16,7 @@ export function Footer() {
               A resume builder with a cleaner offer.
             </p>
             <p className="mt-4 text-sm leading-7 text-[#53605a]">
-              Build for free, preview everything, and pay only when the resume is
+              Create a free account, preview everything, and pay only when the resume is
               ready to export. Better for job seekers. Easier to trust.
             </p>
           </div>

@@ -1,4 +1,5 @@
 import type { ResumeData } from "../types";
+import { getSafeMailto, getSafeUrl } from "../safe-url";
 
 function esc(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -16,11 +17,16 @@ export function generateProfessionalHTML(data: ResumeData, title: string): strin
   const contactRows: string[] = [];
   if (personalInfo.phone)
     contactRows.push(`<tr><td class="icon">📞</td><td>${esc(personalInfo.phone)}</td></tr>`);
-  if (personalInfo.email)
-    contactRows.push(`<tr><td class="icon">✉</td><td><a href="mailto:${esc(personalInfo.email)}">${esc(personalInfo.email)}</a></td></tr>`);
+  if (personalInfo.email) {
+    const emailHref = getSafeMailto(personalInfo.email);
+    contactRows.push(`<tr><td class="icon">✉</td><td>${emailHref ? `<a href="${esc(emailHref)}">${esc(personalInfo.email)}</a>` : esc(personalInfo.email)}</td></tr>`);
+  }
   for (const link of personalInfo.links) {
-    if (link.url)
-      contactRows.push(`<tr><td class="icon">🔗</td><td><a href="${esc(link.url)}">${esc(link.label || link.url.replace(/^https?:\/\/(www\.)?/, ""))}</a></td></tr>`);
+    const safeUrl = getSafeUrl(link.url);
+    if (safeUrl)
+      contactRows.push(`<tr><td class="icon">🔗</td><td><a href="${esc(safeUrl)}">${esc(link.label || link.url.replace(/^https?:\/\/(www\.)?/, ""))}</a></td></tr>`);
+    else if (link.url || link.label)
+      contactRows.push(`<tr><td class="icon">🔗</td><td>${esc(link.label || link.url)}</td></tr>`);
   }
 
   let html = `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>${esc(title)}</title>
@@ -107,7 +113,8 @@ function renderProjects(data: ResumeData): string {
   if (data.projects.length === 0) return "";
   let s = `<h2>Projects</h2>`;
   for (const proj of data.projects) {
-    const right = proj.link ? `<a href="${esc(proj.link)}">${esc(proj.link.replace(/^https?:\/\/(www\.)?/, ""))}</a>` : "";
+    const safeUrl = getSafeUrl(proj.link);
+    const right = safeUrl ? `<a href="${esc(safeUrl)}">${esc(proj.link.replace(/^https?:\/\/(www\.)?/, ""))}</a>` : esc(proj.link);
     s += `<div class="entry-head"><span class="entry-title">${esc(proj.name)}${proj.techStack ? ` <span style="font-weight:400;color:#666">· ${esc(proj.techStack)}</span>` : ""}</span><span class="entry-date">${right}</span></div>`;
     const bullets = proj.bullets.filter((b) => b.trim());
     if (bullets.length) s += `<ul>${bullets.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>`;

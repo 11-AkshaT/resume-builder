@@ -45,7 +45,7 @@ model ResumeUnlock {
   resumeId   String?
   unlockType String    @default("single")
   status     String    @default("pending")
-  orderId    String
+  orderId    String    @unique
   unlockedAt DateTime?
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt

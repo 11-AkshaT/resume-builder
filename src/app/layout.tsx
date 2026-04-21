@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import { RazorpayScript } from "@/components/razorpay-script";
+import { assertProductionEnv } from "@/lib/env";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,7 +18,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ResumeOnce — Build Free, Pay Once to Export",
   description:
-    "ATS-safe resume builder with one-time payment. Build your resume for free, preview everything, and pay only when you're ready to export.",
+    "ATS-safe resume builder with one-time payment. Create a free account, preview everything, and pay only when you're ready to export.",
 };
 
 export default function RootLayout({
@@ -25,6 +26,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  assertProductionEnv();
+
   return (
     <html
       lang="en"

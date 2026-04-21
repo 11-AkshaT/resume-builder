@@ -1,6 +1,7 @@
 "use client";
 
 import type { ResumeData } from "@/lib/types";
+import { getSafeMailto, getSafeUrl } from "@/lib/safe-url";
 
 interface MinimalPreviewProps {
   data: ResumeData;
@@ -15,21 +16,27 @@ export function MinimalPreview({ data, sectionOrder }: MinimalPreviewProps) {
 
   const contactParts: React.ReactNode[] = [];
   if (personalInfo.phone) contactParts.push(personalInfo.phone);
+  const emailHref = getSafeMailto(personalInfo.email);
   if (personalInfo.email)
     contactParts.push(
-      <a key="email" href={`mailto:${personalInfo.email}`} className="underline">
-        {personalInfo.email}
-      </a>
+      emailHref ? (
+        <a key="email" href={emailHref} className="underline">
+          {personalInfo.email}
+        </a>
+      ) : (
+        <span key="email">{personalInfo.email}</span>
+      )
     );
   personalInfo.links.forEach((link, i) => {
+    const safeUrl = getSafeUrl(link.url);
     if (link.url || link.label) {
       contactParts.push(
-        link.url ? (
-          <a key={`link-${i}`} href={link.url} className="underline" target="_blank" rel="noopener noreferrer">
+        safeUrl ? (
+          <a key={`link-${i}`} href={safeUrl} className="underline" target="_blank" rel="noopener noreferrer">
             {link.label || link.url.replace(/^https?:\/\/(www\.)?/, "")}
           </a>
         ) : (
-          <span key={`link-${i}`}>{link.label}</span>
+          <span key={`link-${i}`}>{link.label || link.url}</span>
         )
       );
     }
@@ -148,15 +155,20 @@ function ProjectsSection({ data }: { data: ResumeData }) {
       <SectionHeader title="Projects" />
       {data.projects.map((proj) => (
         <div key={proj.id}>
+          {(() => {
+            const safeUrl = getSafeUrl(proj.link);
+            return (
           <div className="mb-[2pt] ml-[6pt] flex justify-between items-baseline" style={{ width: "97%" }}>
             <div className="text-[10.5pt]">
               <span className="font-bold">{proj.name}</span>
               {proj.techStack && <>{" | "}<span className="italic">{proj.techStack}</span></>}
             </div>
             <div className="text-[10.5pt] shrink-0 ml-2 text-right">
-              {proj.link ? <a href={proj.link} className="underline" target="_blank" rel="noopener noreferrer">{proj.link.replace(/^https?:\/\/(www\.)?/, "")}</a> : null}
+              {safeUrl ? <a href={safeUrl} className="underline" target="_blank" rel="noopener noreferrer">{proj.link.replace(/^https?:\/\/(www\.)?/, "")}</a> : proj.link || null}
             </div>
           </div>
+            );
+          })()}
           <BulletList items={proj.bullets} />
         </div>
       ))}

@@ -205,7 +205,7 @@ export const PRODUCTS = {
     price: 299,
     currency: "USD",
     displayPrice: "$2.99",
-    description: "Unlock PDF & LaTeX export for this resume forever",
+    description: "Unlock download and LaTeX export for this resume forever",
   },
   lifetime_unlimited: {
     name: "Lifetime Unlimited",

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ResumeData } from "@/lib/types";
+import { getSafeUrl } from "@/lib/safe-url";
 
 interface ModernPreviewProps {
   data: ResumeData;
@@ -76,9 +77,13 @@ export function ModernPreview({ data, sectionOrder }: ModernPreviewProps) {
             link.url || link.label ? (
               <div key={i} className="flex gap-[4pt] items-start">
                 <span className="opacity-60 shrink-0">⟶</span>
-                <a href={link.url || "#"} className="underline break-all" target="_blank" rel="noopener noreferrer">
-                  {link.label || link.url?.replace(/^https?:\/\/(www\.)?/, "")}
-                </a>
+                {getSafeUrl(link.url) ? (
+                  <a href={getSafeUrl(link.url) ?? undefined} className="underline break-all" target="_blank" rel="noopener noreferrer">
+                    {link.label || link.url?.replace(/^https?:\/\/(www\.)?/, "")}
+                  </a>
+                ) : (
+                  <span className="break-all">{link.label || link.url}</span>
+                )}
               </div>
             ) : null
           ))}
@@ -217,17 +222,24 @@ const mainRenderers: Record<string, (data: ResumeData) => React.ReactNode> = {
         <MainSectionHeader>Projects</MainSectionHeader>
         {data.projects.map((proj, i) => (
           <div key={proj.id} className={i > 0 ? "mt-[8pt]" : ""}>
+            {(() => {
+              const safeUrl = getSafeUrl(proj.link);
+              return (
             <div className="flex justify-between items-baseline">
               <span className="text-[10pt]">
                 <span className="font-bold">{proj.name}</span>
                 {proj.techStack && <span className="text-gray-500 text-[8.5pt]"> · {proj.techStack}</span>}
               </span>
-              {proj.link && (
-                <a href={proj.link} className="text-[8pt] underline shrink-0 ml-2" style={{ color: ACCENT }} target="_blank" rel="noopener noreferrer">
+              {safeUrl ? (
+                <a href={safeUrl} className="text-[8pt] underline shrink-0 ml-2" style={{ color: ACCENT }} target="_blank" rel="noopener noreferrer">
                   {proj.link.replace(/^https?:\/\/(www\.)?/, "")}
                 </a>
+              ) : (
+                proj.link && <span className="text-[8pt] shrink-0 ml-2">{proj.link}</span>
               )}
             </div>
+              );
+            })()}
             <div className="mt-[2pt]">
               {proj.bullets.filter((b) => b.trim()).map((b, j) => (
                 <BulletText key={j} text={b} />

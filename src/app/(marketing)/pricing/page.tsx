@@ -37,7 +37,7 @@ const planRows = [
     price: "$2.99",
     note: "One-time",
     description:
-      "For one active job search when you want export access without getting trapped in a monthly plan.",
+      "For one active job search when you want download and export access without getting trapped in a monthly plan.",
     href: "/sign-up",
     cta: "Create my resume free",
     featured: true,
@@ -45,7 +45,7 @@ const planRows = [
       "border-[#215146] bg-[#1f433b] text-[#f5f1e8] shadow-[0_22px_60px_-28px_rgba(31,67,59,0.55)]",
     features: [
       "Unlock this resume forever",
-      "Export when payments are enabled",
+      "Download view and LaTeX export",
       "Keep editing after purchase",
       "Best fit for most job seekers",
     ],
@@ -55,7 +55,7 @@ const planRows = [
     price: "$19",
     note: "Pay once",
     description:
-      "For people who want multiple resumes, future flexibility, and hosted resume access when that feature is live.",
+      "For people who want multiple resumes, future flexibility, and hosted resume access at yourname.resumeonce.co.",
     href: "/sign-up",
     cta: "Choose lifetime",
     tone: "border-[#d8dbd3] bg-[#efe8db] text-[#17211c]",
@@ -126,7 +126,7 @@ const faqs = [
   {
     question: "Who should pick lifetime unlimited?",
     answer:
-      "Choose lifetime if you maintain several resume versions, expect to change roles often, or want the hosted resume feature later.",
+      "Choose lifetime if you maintain several resume versions, expect to change roles often, or want a hosted resume subdomain you can share.",
   },
 ];
 

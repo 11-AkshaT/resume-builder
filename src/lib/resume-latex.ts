@@ -1,6 +1,7 @@
 import type { ResumeData, SectionKey, TemplateKey } from "./types";
 import { generateProfessionalLaTeX } from "./templates/professional-latex";
 import { generateModernLaTeX } from "./templates/modern-latex";
+import { getSafeMailto, getSafeUrl } from "./safe-url";
 
 export function generateResumeLaTeXByTemplate(data: ResumeData, template: TemplateKey): string {
   switch (template) {
@@ -24,8 +25,9 @@ function tex(str: string): string {
 }
 
 function href(url: string, label?: string): string {
+  const safeUrl = getSafeUrl(url);
   const display = label || url.replace(/^https?:\/\/(www\.)?/, "");
-  return `\\href{${url}}{\\underline{${tex(display)}}}`;
+  return safeUrl ? `\\href{${safeUrl}}{\\underline{${tex(display)}}}` : tex(display);
 }
 
 const DEFAULT_ORDER: SectionKey[] = [
@@ -130,10 +132,14 @@ export function generateResumeLaTeX(data: ResumeData): string {
   doc += `    \\textbf{\\Huge \\scshape ${tex(personalInfo.fullName)}} \\\\ \\vspace{1pt}\n`;
   const contact: string[] = [];
   if (personalInfo.phone) contact.push(`\\small ${tex(personalInfo.phone)}`);
-  if (personalInfo.email)
+  if (personalInfo.email) {
+    const emailHref = getSafeMailto(personalInfo.email);
     contact.push(
-      `\\href{mailto:${personalInfo.email}}{\\underline{${tex(personalInfo.email)}}}`
+      emailHref
+        ? `\\href{${emailHref}}{\\underline{${tex(personalInfo.email)}}}`
+        : tex(personalInfo.email)
     );
+  }
   personalInfo.links.forEach((link) => {
     if (link.url) contact.push(href(link.url, link.label));
     else if (link.label) contact.push(tex(link.label));

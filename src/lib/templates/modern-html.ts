@@ -1,4 +1,5 @@
 import type { ResumeData } from "../types";
+import { getSafeUrl } from "../safe-url";
 
 function esc(str: string): string {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -67,8 +68,11 @@ a.mn-link { color:${ACCENT}; font-size:8pt; text-decoration:underline; }
   if (personalInfo.location)
     html += `<div class="sb-row"><span class="sb-icon">⌂</span><span>${esc(personalInfo.location)}</span></div>`;
   for (const link of personalInfo.links) {
-    if (link.url)
-      html += `<div class="sb-row"><span class="sb-icon">⟶</span><a href="${esc(link.url)}" style="word-break:break-all">${esc(link.label || link.url.replace(/^https?:\/\/(www\.)?/, ""))}</a></div>`;
+    const safeUrl = getSafeUrl(link.url);
+    if (safeUrl)
+      html += `<div class="sb-row"><span class="sb-icon">⟶</span><a href="${esc(safeUrl)}" style="word-break:break-all">${esc(link.label || link.url.replace(/^https?:\/\/(www\.)?/, ""))}</a></div>`;
+    else if (link.url || link.label)
+      html += `<div class="sb-row"><span class="sb-icon">⟶</span><span style="word-break:break-all">${esc(link.label || link.url)}</span></div>`;
   }
   html += `</div>`;
 
@@ -133,7 +137,8 @@ function renderProjects(data: ResumeData): string {
   let s = `<div class="mn-header">Projects</div>`;
   for (const proj of data.projects) {
     s += `<div class="mn-entry">`;
-    const linkHtml = proj.link ? `<a class="mn-link" href="${esc(proj.link)}">${esc(proj.link.replace(/^https?:\/\/(www\.)?/, ""))}</a>` : "";
+    const safeUrl = getSafeUrl(proj.link);
+    const linkHtml = safeUrl ? `<a class="mn-link" href="${esc(safeUrl)}">${esc(proj.link.replace(/^https?:\/\/(www\.)?/, ""))}</a>` : esc(proj.link);
     s += `<div class="mn-row"><span class="mn-title">${esc(proj.name)}${proj.techStack ? ` <span style="font-variant:normal;font-weight:400;font-size:8.5pt;color:#666">· ${esc(proj.techStack)}</span>` : ""}</span><span>${linkHtml}</span></div>`;
     for (const b of proj.bullets.filter((b) => b.trim())) {
       s += `<div class="mn-bullet"><span class="mn-bullet-icon">◆</span><span>${esc(b)}</span></div>`;

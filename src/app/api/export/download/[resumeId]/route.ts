@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: "Export not unlocked" }, { status: 403 });
     }
 
-    console.error("Download alias export error:", error);
+    console.error("Download export error:", error);
     return NextResponse.json({ error: "Export failed" }, { status: 500 });
   }
 }

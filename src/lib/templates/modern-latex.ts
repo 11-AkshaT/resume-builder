@@ -1,4 +1,5 @@
 import type { ResumeData, SectionKey } from "../types";
+import { getSafeUrl } from "../safe-url";
 
 function tex(str: string): string {
   return str
@@ -10,8 +11,9 @@ function tex(str: string): string {
 }
 
 function href(url: string, label?: string): string {
+  const safeUrl = getSafeUrl(url);
   const display = label || url.replace(/^https?:\/\/(www\.)?/, "");
-  return `\\href{${url}}{\\underline{${tex(display)}}}`;
+  return safeUrl ? `\\href{${safeUrl}}{\\underline{${tex(display)}}}` : tex(display);
 }
 
 export function generateModernLaTeX(data: ResumeData): string {
@@ -84,8 +86,8 @@ export function generateModernLaTeX(data: ResumeData): string {
   if (personalInfo.phone)
     doc += `\\Mobilefone\\ ${tex(personalInfo.phone)} \\\\[0.5ex]\n`;
   for (const link of personalInfo.links) {
-    if (link.url)
-      doc += `\\Mundus\\ \\href{${link.url}}{${tex(link.label || link.url.replace(/^https?:\/\/(www\.)?/, ""))}} \\\\[0.5ex]\n`;
+    if (link.url || link.label)
+      doc += `\\Mundus\\ ${href(link.url, link.label)} \\\\[0.5ex]\n`;
   }
   if (personalInfo.location)
     doc += `\\Letter\\ ${tex(personalInfo.location)} \\\\[0.1ex]\n`;

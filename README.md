@@ -1,36 +1,95 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ResumeOnce
 
-## Getting Started
+ResumeOnce is a desktop-first resume builder with ATS-safe templates, one-time export pricing, and lifetime hosted resume pages for upgraded users.
 
-First, run the development server:
+## What v1 ships
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Free account creation and drafting
+- Resume editing with live preview
+- Download view export plus LaTeX export
+- One-time unlock for a single resume or lifetime access for all resumes
+- Hosted public resume pages for lifetime users
+- Desktop-only editor experience
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Local setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Copy `.env.example` to `.env`.
+2. Fill in Clerk, Razorpay, database, and optional Sentry values.
+3. Install dependencies with `npm install`.
+4. Run `npm run dev`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Required production environment variables
 
-## Learn More
+- `DATABASE_URL`
+- `CLERK_SECRET_KEY`
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_CLERK_SIGN_IN_URL`
+- `NEXT_PUBLIC_CLERK_SIGN_UP_URL`
+- `RAZORPAY_KEY_ID`
+- `RAZORPAY_KEY_SECRET`
+- `RAZORPAY_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_RAZORPAY_KEY_ID`
+- `NEXT_PUBLIC_APP_URL`
+- `NEXT_PUBLIC_ROOT_DOMAIN`
 
-To learn more about Next.js, take a look at the following resources:
+Optional production variables:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `SENTRY_DSN`
+- `NEXT_PUBLIC_SENTRY_DSN`
+- `SENTRY_AUTH_TOKEN`
+- `SENTRY_ORG`
+- `SENTRY_PROJECT`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Production safety rules:
 
-## Deploy on Vercel
+- `DEV_BYPASS_AUTH` must remain `false`
+- `NEXT_PUBLIC_APP_URL` must use `https`
+- `NEXT_PUBLIC_APP_URL` should be `https://resumeonce.co`
+- `NEXT_PUBLIC_ROOT_DOMAIN` should be `resumeonce.co`
+- `RAZORPAY_WEBHOOK_SECRET` must be real and not `REPLACE_ME`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Payments and webhooks
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Client checkout starts at `POST /api/razorpay/create-order`
+- Checkout success is confirmed at `POST /api/razorpay/verify-payment`
+- Webhooks remain enabled at `POST /api/razorpay/webhook` as a backup finalization path
+- Both verification paths finalize through the same server-side payment helper
+
+Configure the Razorpay webhook to point to:
+
+`https://resumeonce.co/api/razorpay/webhook`
+
+Use the same webhook secret in Razorpay and `RAZORPAY_WEBHOOK_SECRET`.
+
+## Publishing and domains
+
+- Public resumes are served from `/r/[slug]`
+- With `NEXT_PUBLIC_ROOT_DOMAIN=resumeonce.co`, `jane.resumeonce.co` rewrites to `/r/jane`
+- Lifetime access is required before a resume can be published
+- Add both `resumeonce.co` and wildcard `*.resumeonce.co` to the Vercel project domains
+
+## Vercel launch checklist
+
+1. Add `resumeonce.co` and `*.resumeonce.co` in Vercel.
+2. Set the production env vars from `.env.example` with live Clerk and Razorpay keys.
+3. Run `npx prisma migrate deploy` against the production database.
+4. Configure the Razorpay webhook to `https://resumeonce.co/api/razorpay/webhook`.
+5. Deploy from the branch that contains these production-readiness changes.
+
+## Commands
+
+- `npm run dev`
+- `npm run lint`
+- `npm run build`
+- `npm run test`
+
+## Manual QA before launch
+
+1. Sign up and sign in with Clerk.
+2. Create a resume and confirm autosave/title save work.
+3. Verify the editor shows the desktop-only notice on a narrow viewport.
+4. Start a single unlock checkout and confirm `verify-payment` unlocks the resume.
+5. Repeat for the lifetime plan and verify hosted publishing becomes available.
+6. Open the `Download` flow and LaTeX export on an unlocked resume.
+7. Publish and unpublish a lifetime resume and verify the public page updates.
+8. Confirm Sentry DSNs are set and production builds succeed.

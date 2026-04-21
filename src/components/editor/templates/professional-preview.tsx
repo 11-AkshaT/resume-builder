@@ -1,6 +1,7 @@
 "use client";
 
 import type { ResumeData } from "@/lib/types";
+import { getSafeMailto, getSafeUrl } from "@/lib/safe-url";
 
 interface ProfessionalPreviewProps {
   data: ResumeData;
@@ -19,20 +20,24 @@ export function ProfessionalPreview({ data, sectionOrder }: ProfessionalPreviewP
 
   const contactRows: { icon: string; text: React.ReactNode }[] = [];
   if (personalInfo.phone) contactRows.push({ icon: "📞", text: personalInfo.phone });
+  const emailHref = getSafeMailto(personalInfo.email);
   if (personalInfo.email)
     contactRows.push({
       icon: "✉",
-      text: <a href={`mailto:${personalInfo.email}`} className="underline">{personalInfo.email}</a>,
+      text: emailHref ? (
+        <a href={emailHref} className="underline">{personalInfo.email}</a>
+      ) : personalInfo.email,
     });
   personalInfo.links.forEach((link) => {
+    const safeUrl = getSafeUrl(link.url);
     if (link.url || link.label)
       contactRows.push({
         icon: "🔗",
-        text: link.url ? (
-          <a href={link.url} className="underline" target="_blank" rel="noopener noreferrer">
+        text: safeUrl ? (
+          <a href={safeUrl} className="underline" target="_blank" rel="noopener noreferrer">
             {link.label || link.url.replace(/^https?:\/\/(www\.)?/, "")}
           </a>
-        ) : link.label,
+        ) : link.label || link.url,
       });
   });
 
@@ -162,17 +167,24 @@ const leftRenderers: Record<string, (data: ResumeData) => React.ReactNode> = {
         <SectionHeader title="Projects" />
         {data.projects.map((proj, i) => (
           <div key={proj.id} className={i > 0 ? "mt-[8pt]" : ""}>
+            {(() => {
+              const safeUrl = getSafeUrl(proj.link);
+              return (
             <div className="flex justify-between items-baseline">
               <span className="text-[10.5pt]">
                 <span className="font-bold">{proj.name}</span>
                 {proj.techStack && <span className="text-gray-600"> · {proj.techStack}</span>}
               </span>
-              {proj.link && (
-                <a href={proj.link} className="text-[9pt] underline shrink-0 ml-2" target="_blank" rel="noopener noreferrer">
+              {safeUrl ? (
+                <a href={safeUrl} className="text-[9pt] underline shrink-0 ml-2" target="_blank" rel="noopener noreferrer">
                   {proj.link.replace(/^https?:\/\/(www\.)?/, "")}
                 </a>
+              ) : (
+                proj.link && <span className="text-[9pt] shrink-0 ml-2">{proj.link}</span>
               )}
             </div>
+              );
+            })()}
             <BulletList items={proj.bullets} />
           </div>
         ))}

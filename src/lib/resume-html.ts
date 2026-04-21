@@ -1,6 +1,7 @@
 import type { ResumeData, SectionKey, TemplateKey } from "./types";
 import { generateProfessionalHTML } from "./templates/professional-html";
 import { generateModernHTML } from "./templates/modern-html";
+import { getSafeMailto, getSafeUrl } from "./safe-url";
 
 export function generateResumeHTMLByTemplate(data: ResumeData, title: string, template: TemplateKey): string {
   switch (template) {
@@ -36,16 +37,21 @@ export function generateResumeHTML(data: ResumeData, title: string): string {
 
   const contactParts: string[] = [];
   if (personalInfo.phone) contactParts.push(esc(personalInfo.phone));
+  const emailHref = getSafeMailto(personalInfo.email);
   if (personalInfo.email)
     contactParts.push(
-      `<a href="mailto:${esc(personalInfo.email)}">${esc(personalInfo.email)}</a>`
+      emailHref
+        ? `<a href="${esc(emailHref)}">${esc(personalInfo.email)}</a>`
+        : esc(personalInfo.email)
     );
   personalInfo.links.forEach((link) => {
-    if (link.url)
+    const safeUrl = getSafeUrl(link.url);
+    if (safeUrl)
       contactParts.push(
-        `<a href="${esc(link.url)}">${esc(link.label || link.url.replace(/^https?:\/\/(www\.)?/, ""))}</a>`
+        `<a href="${esc(safeUrl)}">${esc(link.label || link.url.replace(/^https?:\/\/(www\.)?/, ""))}</a>`
       );
     else if (link.label) contactParts.push(esc(link.label));
+    else if (link.url) contactParts.push(esc(link.url));
   });
 
   let html = `<!DOCTYPE html>
@@ -173,9 +179,10 @@ function renderProjects(data: ResumeData): string {
   let s = sectionHead("Projects");
   for (const proj of data.projects) {
     const left = `<b>${esc(proj.name)}</b>${proj.techStack ? ` | <em>${esc(proj.techStack)}</em>` : ""}`;
-    const right = proj.link
-      ? `<a href="${esc(proj.link)}">${esc(proj.link.replace(/^https?:\/\/(www\.)?/, ""))}</a>`
-      : "";
+    const safeUrl = getSafeUrl(proj.link);
+    const right = safeUrl
+      ? `<a href="${esc(safeUrl)}">${esc(proj.link.replace(/^https?:\/\/(www\.)?/, ""))}</a>`
+      : esc(proj.link);
     s += proj1row(left, right);
     s += bullets(proj.bullets);
   }

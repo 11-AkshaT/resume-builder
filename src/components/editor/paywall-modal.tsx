@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   ArrowRight,
@@ -13,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { PRODUCTS } from "@/lib/types";
+import { trackEvent } from "@/lib/analytics";
 
 interface PaywallModalProps {
   resumeId: string;
@@ -21,10 +22,30 @@ interface PaywallModalProps {
 
 export function PaywallModal({ resumeId, onClose }: PaywallModalProps) {
   const [loading, setLoading] = useState<string | null>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const headingId = useId();
+  const descriptionId = useId();
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const handlePurchase = async (productType: "single_resume_unlock" | "lifetime_unlimited") => {
     setLoading(productType);
     try {
+      trackEvent("create_order_started", {
+        productType,
+      });
+
       const res = await fetch("/api/razorpay/create-order", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -41,8 +62,34 @@ export function PaywallModal({ resumeId, onClose }: PaywallModalProps) {
         name: "ResumeOnce",
         description: PRODUCTS[productType].description,
         order_id: data.providerOrderId,
-        handler: () => {
-          window.location.reload();
+        handler: async (response: {
+          razorpay_order_id: string;
+          razorpay_payment_id: string;
+          razorpay_signature: string;
+        }) => {
+          try {
+            const verifyRes = await fetch("/api/razorpay/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: data.orderId,
+                ...response,
+              }),
+            });
+
+            if (!verifyRes.ok) {
+              throw new Error("Payment verified by checkout but not accepted by the server.");
+            }
+
+            trackEvent("payment_verified", {
+              productType,
+            });
+
+            window.location.reload();
+          } catch (verificationError) {
+            console.error("Payment verification error:", verificationError);
+            alert("Payment completed, but we could not confirm the unlock yet. Please refresh in a moment or contact support if it stays locked.");
+          }
         },
         prefill: { email: data.email },
         theme: { color: "#0d9488" },
@@ -52,7 +99,7 @@ export function PaywallModal({ resumeId, onClose }: PaywallModalProps) {
       rzp.open();
     } catch (err) {
       console.error("Payment error:", err);
-      alert("Failed to initiate payment. Please try again.");
+      alert("Failed to start checkout. Please try again.");
     } finally {
       setLoading(null);
     }
@@ -64,11 +111,17 @@ export function PaywallModal({ resumeId, onClose }: PaywallModalProps) {
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+        aria-describedby={descriptionId}
         className="relative mx-auto mt-8 w-full max-w-5xl overflow-hidden rounded-[2rem] border border-border/90 bg-card/95 shadow-[0_32px_90px_-36px_rgba(20,32,27,0.42)] animate-fade-in-up"
         onClick={(event) => event.stopPropagation()}
       >
         <button
+          ref={closeButtonRef}
           onClick={onClose}
+          aria-label="Close export options"
           className="absolute right-5 top-5 rounded-full border border-border/70 bg-card/80 p-2 text-muted-foreground transition-colors duration-200 hover:text-foreground"
         >
           <X className="h-4 w-4" />
@@ -79,11 +132,11 @@ export function PaywallModal({ resumeId, onClose }: PaywallModalProps) {
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
               Unlock export
             </p>
-            <h2 className="mt-4 font-display text-4xl leading-[0.94] tracking-[-0.04em] text-marketing-ink sm:text-5xl">
+            <h2 id={headingId} className="mt-4 font-display text-4xl leading-[0.94] tracking-[-0.04em] text-marketing-ink sm:text-5xl">
               Keep the builder free.
               <span className="block text-primary">Pay when the resume is ready.</span>
             </h2>
-            <p className="mt-5 max-w-lg text-sm leading-7 text-muted-foreground sm:text-base">
+            <p id={descriptionId} className="mt-5 max-w-lg text-sm leading-7 text-muted-foreground sm:text-base">
               ResumeOnce is designed around the real moment of value: when you want the
               finished file in hand. Choose the smallest unlock that gets you there.
             </p>
@@ -95,9 +148,9 @@ export function PaywallModal({ resumeId, onClose }: PaywallModalProps) {
                     <FileOutput className="h-4 w-4" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Polished exports</p>
+                    <p className="text-sm font-semibold text-foreground">Polished download files</p>
                     <p className="text-xs text-muted-foreground">
-                      Download clean PDF and LaTeX files when you are done editing.
+                      Open a clean download view and grab the LaTeX source when you are done editing.
                     </p>
                   </div>
                 </div>
@@ -150,7 +203,7 @@ export function PaywallModal({ resumeId, onClose }: PaywallModalProps) {
                 </div>
                 <ul className="mb-6 space-y-3">
                   {[
-                    "Clean PDF export",
+                    "Clean download view",
                     "LaTeX source export",
                     "Unlocked forever for this draft",
                     "Unlimited re-downloads later",

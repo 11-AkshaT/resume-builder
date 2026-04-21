@@ -34,6 +34,7 @@ export function DeleteResumeButton({ resumeId }: { resumeId: string }) {
     <button
       onClick={handleDelete}
       disabled={deleting}
+      aria-label={confirming ? "Confirm delete resume" : "Delete resume"}
       className={`rounded-md p-1.5 text-xs transition-colors ${
         confirming
           ? "bg-destructive/10 text-destructive hover:bg-destructive/20"
