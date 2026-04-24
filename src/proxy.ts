@@ -1,11 +1,9 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { assertProductionEnv, env } from "./lib/env";
+import { env } from "./lib/env";
 import { getHostedResumeSlugFromHost } from "./lib/subdomains";
 
 const isProtectedRoute = createRouteMatcher(["/app(.*)"]);
-
-assertProductionEnv();
 
 export default clerkMiddleware(async (auth, request) => {
   const hostname = request.headers.get("host") ?? "";

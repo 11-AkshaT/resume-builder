@@ -45,7 +45,18 @@ export function PublishPanel({
   >("idle");
   const slugCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN;
+  const rootDomain =
+    process.env.NEXT_PUBLIC_ROOT_DOMAIN ??
+    (() => {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+      if (!appUrl) return undefined;
+
+      try {
+        return new URL(appUrl).hostname;
+      } catch {
+        return undefined;
+      }
+    })();
   const origin =
     typeof window !== "undefined"
       ? window.location.origin

@@ -6,7 +6,6 @@ const REQUIRED_PRODUCTION_ENV = [
   "RAZORPAY_WEBHOOK_SECRET",
   "NEXT_PUBLIC_RAZORPAY_KEY_ID",
   "NEXT_PUBLIC_APP_URL",
-  "NEXT_PUBLIC_ROOT_DOMAIN",
 ] as const;
 
 type EnvShape = Record<string, string | undefined>;
@@ -23,6 +22,7 @@ function formatMissingEnv(names: readonly string[]) {
 export function getProductionEnvIssues(values: EnvShape) {
   const missing = REQUIRED_PRODUCTION_ENV.filter((name) => !values[name]?.trim());
   const issues: string[] = [];
+  const resolvedRootDomain = getRootDomain(values);
 
   if (missing.length > 0) {
     issues.push(
@@ -46,10 +46,10 @@ export function getProductionEnvIssues(values: EnvShape) {
     issues.push("NEXT_PUBLIC_ROOT_DOMAIN must be a bare domain, for example resumeonce.co.");
   }
 
-  if (values.NEXT_PUBLIC_APP_URL && values.NEXT_PUBLIC_ROOT_DOMAIN) {
+  if (values.NEXT_PUBLIC_APP_URL && resolvedRootDomain) {
     try {
       const appHost = new URL(values.NEXT_PUBLIC_APP_URL).hostname;
-      const rootDomain = values.NEXT_PUBLIC_ROOT_DOMAIN.trim().toLowerCase();
+      const rootDomain = resolvedRootDomain;
       if (appHost !== rootDomain && appHost !== `www.${rootDomain}`) {
         issues.push("NEXT_PUBLIC_APP_URL must use NEXT_PUBLIC_ROOT_DOMAIN or www.NEXT_PUBLIC_ROOT_DOMAIN.");
       }
@@ -61,6 +61,30 @@ export function getProductionEnvIssues(values: EnvShape) {
   return issues;
 }
 
+function deriveRootDomainFromAppUrl(appUrl?: string) {
+  if (!appUrl) return undefined;
+
+  try {
+    return new URL(appUrl).hostname.trim().toLowerCase();
+  } catch {
+    return undefined;
+  }
+}
+
+export function getRootDomain(values: EnvShape = process.env) {
+  const explicitRootDomain = readEnvFrom(values, "NEXT_PUBLIC_ROOT_DOMAIN");
+  if (explicitRootDomain) {
+    return explicitRootDomain.toLowerCase();
+  }
+
+  return deriveRootDomainFromAppUrl(readEnvFrom(values, "NEXT_PUBLIC_APP_URL"));
+}
+
+function readEnvFrom(values: EnvShape, name: string) {
+  const value = values[name];
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 export const env = {
   databaseUrl: readEnv("DATABASE_URL"),
   appUrl: readEnv("NEXT_PUBLIC_APP_URL"),
@@ -69,7 +93,7 @@ export const env = {
   clerkSignInUrl: readEnv("NEXT_PUBLIC_CLERK_SIGN_IN_URL") ?? "/sign-in",
   clerkSignUpUrl: readEnv("NEXT_PUBLIC_CLERK_SIGN_UP_URL") ?? "/sign-up",
   devBypassAuth: readEnv("DEV_BYPASS_AUTH") === "true",
-  rootDomain: readEnv("NEXT_PUBLIC_ROOT_DOMAIN"),
+  rootDomain: getRootDomain(),
   razorpayKeyId: readEnv("RAZORPAY_KEY_ID"),
   razorpayKeySecret: readEnv("RAZORPAY_KEY_SECRET"),
   razorpayWebhookSecret: readEnv("RAZORPAY_WEBHOOK_SECRET"),

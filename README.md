@@ -30,10 +30,10 @@ ResumeOnce is a desktop-first resume builder with ATS-safe templates, one-time e
 - `RAZORPAY_WEBHOOK_SECRET`
 - `NEXT_PUBLIC_RAZORPAY_KEY_ID`
 - `NEXT_PUBLIC_APP_URL`
-- `NEXT_PUBLIC_ROOT_DOMAIN`
 
 Optional production variables:
 
+- `NEXT_PUBLIC_ROOT_DOMAIN`
 - `SENTRY_DSN`
 - `NEXT_PUBLIC_SENTRY_DSN`
 - `SENTRY_AUTH_TOKEN`
@@ -45,7 +45,7 @@ Production safety rules:
 - `DEV_BYPASS_AUTH` must remain `false`
 - `NEXT_PUBLIC_APP_URL` must use `https`
 - `NEXT_PUBLIC_APP_URL` should be `https://resumeonce.co`
-- `NEXT_PUBLIC_ROOT_DOMAIN` should be `resumeonce.co`
+- `NEXT_PUBLIC_ROOT_DOMAIN` should be `resumeonce.co` when you want to override the domain inferred from `NEXT_PUBLIC_APP_URL`
 - `RAZORPAY_WEBHOOK_SECRET` must be real and not `REPLACE_ME`
 
 ## Payments and webhooks
